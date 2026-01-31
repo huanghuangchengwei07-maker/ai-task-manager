@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Task Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .natural-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .natural-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .natural-input::placeholder {
+            color: #999;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .examples {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .examples h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .example-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-item:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .task-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .task-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-in-progress {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+
+        .tags-cell {
+            white-space: normal;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tasks-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95em;
+            color: #333;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .task-id {
+            font-family: monospace;
+            font-size: 0.85em;
+            color: #666;
+            word-break: break-all;
+        }
+
+        .task-desc {
+            color: #666;
+            max-width: 260px;
+            word-break: break-word;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-edit {
+            background: #667eea;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .manual-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        select, input[type="text"], input[type="datetime-local"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .link-to-docs {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .link-to-docs a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+        }
+
+        .link-to-docs a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Task Manager</h1>
+            <p>Create and manage your tasks with natural language</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('natural')">✨ Natural Language</button>
+                <button class="tab" onclick="switchTab('manual')">📝 Manual Create</button>
+                <button class="tab" onclick="switchTab('list')">📋 Task List</button>
+            </div>
+
+            <!-- Natural Language Create -->
+            <div id="natural-tab" class="tab-content active">
+                <div class="input-group">
+                    <label for="natural-input">Describe what you want to do:</label>
+                    <textarea 
+                        id="natural-input" 
+                        class="natural-input" 
+                        placeholder="e.g., Remind me to have a meeting tomorrow at 3pm, it's important"
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div class="examples">
+                    <h3>💡 Try these examples:</h3>
+                    <span class="example-item" onclick="fillExample('Remind me to have a meeting tomorrow at 3pm, it\'s important')">Remind me to have a meeting tomorrow at 3pm, it's important</span>
+                    <span class="example-item" onclick="fillExample('Complete the project report by next Monday')">Complete the project report by next Monday</span>
+                    <span class="example-item" onclick="fillExample('Remember to buy milk and bread')">Remember to buy milk and bread</span>
+                    <span class="example-item" onclick="fillExample('Complete code review this Friday, high priority')">Complete code review this Friday, high priority</span>
+                </div>
+
+                <button class="btn" onclick="createTaskNatural()">🚀 Create Task</button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px; color: #666;">AI is parsing your task...</p>
+                </div>
+
+                <div class="success-message" id="success-message"></div>
+                <div class="error-message" id="error-message"></div>
+            </div>
+
+            <!-- Manual Create -->
+            <div id="manual-tab" class="tab-content">
+                <form class="manual-form" onsubmit="createTaskManual(event)">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="title">Task Title *</label>
+                            <input type="text" id="title" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="priority">Priority</label>
+                            <select id="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="status">Status</label>
+                            <select id="status">
+                                <option value="pending" selected>Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="due-date">Due Date</label>
+                            <input type="datetime-local" id="due-date">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn">Create Task</button>
+                </form>
+            </div>
+
+            <!-- Task List -->
+            <div id="list-tab" class="tab-content">
+                <div style="margin-bottom: 15px;">
+                    <button class="btn" onclick="loadTasks()" style="width: auto; padding: 10px 20px;">🔄 Refresh List</button>
+                </div>
+                <div id="tasks-list" class="tasks-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p>Click "Refresh List" to load tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="link-to-docs">
+            <a href="/docs" target="_blank">📚 View Full API Documentation</a>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ Edit Task</h3>
+                <button class="modal-close" onclick="closeEditModal()">×</button>
+            </div>
+            <form class="manual-form" onsubmit="saveEdit(event)">
+                <div class="input-group">
+                    <label for="edit-title">Task Title *</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+                <div class="input-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="edit-priority">Priority</label>
+                        <select id="edit-priority">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="edit-status">Status</label>
+                        <select id="edit-status">
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="edit-due-date">Due Date</label>
+                    <input type="datetime-local" id="edit-due-date">
+                </div>
+                <button type="submit" class="btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const taskCache = new Map();
+        let editingTaskId = null;
+
+        function switchTab(tabName) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 显示选中的标签页
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // 如果切换到列表页，自动加载
+            if (tabName === 'list') {
+                loadTasks();
+            }
+        }
+
+        function fillExample(text) {
+            document.getElementById('natural-input').value = text;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('success-message');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('error-message');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        async function createTaskNatural() {
+            const text = document.getElementById('natural-input').value.trim();
+            if (!text) {
+                showError('Please enter a task description');
+                return;
+            }
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/ai/parse-and-create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('✅ Task created successfully!');
+                    document.getElementById('natural-input').value = '';
+                    if (document.getElementById('list-tab').classList.contains('active')) {
+                        loadTasks();
+                    }
+                } else {
+                    showError(`❌ Failed to create: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                showError(`❌ Network error: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function createTaskManual(event) {
+            event.preventDefault();
+            
+            const taskData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value || null,
+                status: document.getElementById('status').value,
+                priority: document.getElementById('priority').value,
+            };
+
+            const dueDate = document.getElementById('due-date').value;
+            if (dueDate) {
+                taskData.due_date = new Date(dueDate).toISOString();
+            }
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('✅ Task created successfully!');
+                    event.target.reset();
+                    if (document.getElementById('list-tab').classList.contains('active')) {
+                        loadTasks();
+                    }
+                } else {
+                    showError(`❌ Failed to create: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                showError(`❌ Network error: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadTasks() {
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = '<div class="empty-state"><div class="spinner"></div><p>Loading...</p></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks?limit=50`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    const tasks = data.tasks || [];
+                    if (tasks.length === 0) {
+                        tasksList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📝</div>
+                                <p>No tasks yet. Create one now!</p>
+                            </div>
+                        `;
+                    } else {
+                        const priorityOrder = { high: 3, medium: 2, low: 1 };
+                        tasks.sort((a, b) => {
+                            const aScore = priorityOrder[a.priority] || 0;
+                            const bScore = priorityOrder[b.priority] || 0;
+                            if (aScore !== bScore) {
+                                return bScore - aScore;
+                            }
+                            return (a.created_at || '').localeCompare(b.created_at || '');
+                        });
+
+                        taskCache.clear();
+                        tasks.forEach(task => taskCache.set(task.id, task));
+                        tasksList.innerHTML = `
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Priority</th>
+                                            <th>Due Date</th>
+                                            <th>Task Title</th>
+                                            <th>Description</th>
+                                            <th>Task ID</th>
+                                            <th>Status</th>
+                                            <th>Tags</th>
+                                            <th>Created At</th>
+                                            <th>Updated At</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${tasks.map(task => formatTaskRow(task)).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                } else {
+                    tasksList.innerHTML = `<div class="error-message show">Failed to load: ${data.detail || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                tasksList.innerHTML = `<div class="error-message show">Network error: ${error.message}</div>`;
+            }
+        }
+
+        function formatTaskRow(task) {
+            const statusMap = {
+                'pending': { text: 'Pending', class: 'badge-pending' },
+                'in_progress': { text: 'In Progress', class: 'badge-in-progress' },
+                'completed': { text: 'Completed', class: 'badge-completed' }
+            };
+
+            const priorityMap = {
+                'low': { text: 'Low', class: 'badge-low' },
+                'medium': { text: 'Medium', class: 'badge-medium' },
+                'high': { text: 'High', class: 'badge-high' }
+            };
+
+            const status = statusMap[task.status] || { text: task.status, class: 'badge-pending' };
+            const priority = priorityMap[task.priority] || { text: task.priority, class: 'badge-medium' };
+            const description = task.description ? task.description : '-';
+            const taskId = task.id || '';
+            let dueText = 'Not set';
+            if (task.due_date) {
+                const dueDate = new Date(task.due_date);
+                if (!Number.isNaN(dueDate.getTime())) {
+                    dueText = dueDate.toLocaleString('en-US');
+                }
+            }
+            let createdText = '-';
+            if (task.created_at) {
+                const createdDate = new Date(task.created_at);
+                if (!Number.isNaN(createdDate.getTime())) {
+                    createdText = createdDate.toLocaleString('en-US');
+                }
+            }
+            let updatedText = '-';
+            if (task.updated_at) {
+                const updatedDate = new Date(task.updated_at);
+                if (!Number.isNaN(updatedDate.getTime())) {
+                    updatedText = updatedDate.toLocaleString('en-US');
+                }
+            }
+            // 处理标签显示
+            let tagsText = '-';
+            if (task.tags) {
+                let tags = task.tags;
+                // 如果后端返回的是字符串（JSON格式），需要解析
+                if (typeof tags === 'string') {
+                    try {
+                        tags = JSON.parse(tags);
+                    } catch (e) {
+                        // 解析失败，当作单个标签
+                        tags = tags.trim() ? [tags] : [];
+                    }
+                }
+                // 如果是数组且有内容，显示标签
+                if (Array.isArray(tags) && tags.length > 0) {
+                    tagsText = tags.map(tag => `<span class="tag">${tag}</span>`).join(' ');
+                }
+            }
+
+            return `
+                <tr>
+                    <td><span class="badge ${priority.class}">${priority.text}</span></td>
+                    <td>${dueText}</td>
+                    <td>${task.title}</td>
+                    <td class="task-desc">${description}</td>
+                    <td class="task-id">${taskId}</td>
+                    <td><span class="badge ${status.class}">${status.text}</span></td>
+                    <td class="tags-cell">${tagsText}</td>
+                    <td>${createdText}</td>
+                    <td>${updatedText}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-small btn-edit" onclick="openEditModal('${taskId}')">Edit</button>
+                            <button class="btn-small btn-delete" onclick="confirmDelete('${taskId}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function openEditModal(taskId) {
+            const task = taskCache.get(taskId);
+            if (!task) {
+                showError('Task not found');
+                return;
+            }
+            editingTaskId = taskId;
+            document.getElementById('edit-title').value = task.title || '';
+            document.getElementById('edit-description').value = task.description || '';
+            document.getElementById('edit-priority').value = task.priority || 'medium';
+            document.getElementById('edit-status').value = task.status || 'pending';
+            if (task.due_date) {
+                const date = new Date(task.due_date);
+                const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16);
+                document.getElementById('edit-due-date').value = local;
+            } else {
+                document.getElementById('edit-due-date').value = '';
+            }
+            document.getElementById('edit-modal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.remove('show');
+            editingTaskId = null;
+        }
+
+        async function saveEdit(event) {
+            event.preventDefault();
+            if (!editingTaskId) {
+                showError('No task selected');
+                return;
+            }
+
+            const payload = {
+                title: document.getElementById('edit-title').value,
+                description: document.getElementById('edit-description').value || null,
+                priority: document.getElementById('edit-priority').value,
+                status: document.getElementById('edit-status').value,
+            };
+
+            const dueDate = document.getElementById('edit-due-date').value;
+            if (dueDate) {
+                payload.due_date = new Date(dueDate).toISOString();
+            } else {
+                payload.due_date = null;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks/${editingTaskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showSuccess('✅ Task updated successfully!');
+                    closeEditModal();
+                    loadTasks();
+                } else {
+                    showError(`❌ Failed to update: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                showError(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        async function confirmDelete(taskId) {
+            const ok = confirm('Are you sure you want to delete this task?');
+            if (!ok) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showSuccess('✅ Task deleted');
+                    loadTasks();
+                } else {
+                    const data = await response.json();
+                    showError(`❌ Failed to delete: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                showError(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        function hideMessages() {
+            document.getElementById('success-message').classList.remove('show');
+            document.getElementById('error-message').classList.remove('show');
+        }
+
+        // 支持回车键提交（自然语言输入）
+        document.getElementById('natural-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                createTaskNatural();
+            }
+        });
+    </script>
+</body>
+</html>
