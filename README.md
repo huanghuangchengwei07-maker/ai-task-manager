@@ -88,7 +88,7 @@ python -m src.main
 ```bash
 uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
-
+If you need to experiment with more AI features, considering that API key quotas are limited, you may need to configure your own API key.
 The server will start on `http://localhost:8000`
 
 ### Access the Application
