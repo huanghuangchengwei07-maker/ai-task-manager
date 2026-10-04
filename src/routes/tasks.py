@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -9,6 +11,8 @@ from src.models.schemas import (
 )
 from src.services.task_service import TaskService, _task_to_dict
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/tasks", tags=["Tasks"])
 
 
@@ -19,11 +23,11 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
         service = TaskService(db)
         task = service.create(task_data)
         return _task_to_dict(task)
-    except Exception as e:
-        from fastapi import HTTPException
-        import traceback
-        error_detail = f"创建任务失败: {str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Failed to create task")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("", response_model=TaskListResponse)
@@ -42,38 +46,56 @@ def list_tasks(
             "tasks": [_task_to_dict(t) for t in tasks],
             "total": total
         }
-    except Exception as e:
-        from fastapi import HTTPException
-        import traceback
-        error_detail = f"获取任务列表失败: {str(e)}\n{traceback.format_exc()}"
-        raise HTTPException(status_code=500, detail=error_detail)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Failed to list tasks")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
 def get_task(task_id: str, db: Session = Depends(get_db)):
     """获取单个任务"""
-    service = TaskService(db)
-    task = service.get_by_id(task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return _task_to_dict(task)
+    try:
+        service = TaskService(db)
+        task = service.get_by_id(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        return _task_to_dict(task)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Failed to get task")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.put("/{task_id}", response_model=TaskResponse)
 def update_task(task_id: str, task_data: TaskUpdate, db: Session = Depends(get_db)):
     """更新任务"""
-    service = TaskService(db)
-    task = service.update(task_id, task_data)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return _task_to_dict(task)
+    try:
+        service = TaskService(db)
+        task = service.update(task_id, task_data)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        return _task_to_dict(task)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Failed to update task")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/{task_id}", status_code=204)
 def delete_task(task_id: str, db: Session = Depends(get_db)):
     """删除任务"""
-    service = TaskService(db)
-    success = service.delete(task_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return None
+    try:
+        service = TaskService(db)
+        success = service.delete(task_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Task not found")
+        return None
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Failed to delete task")
+        raise HTTPException(status_code=500, detail="Internal server error")
