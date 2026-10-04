@@ -99,6 +99,20 @@ The server will start on `http://localhost:8000`
 
 ## API Documentation
 
+`PUT /api/tasks/{id}` accepts partial updates: omitted fields are unchanged.
+Explicit `null` is rejected with HTTP 422 for `title`, `status`, and `priority`;
+`description`, `tags`, and `due_date` may be cleared with `null`.
+
+New databases enforce `NOT NULL` for `title`, `status`, and `priority`.
+`init_db()` uses `create_all()` and does not migrate existing tables. Before
+applying these constraints to an existing SQLite database, back it up, repair any
+NULL values (restore valid titles; choose valid status/priority values), and rebuild
+the `tasks` table with the model's constraints while preserving its data and IDs.
+The request validation protects the update API immediately, including existing databases.
+
+Run the isolated update regression tests after installing the requirements:
+`python -m unittest tests.test_task_update -v` (no API keys or running server required).
+
 ### Task CRUD
 | Method | Endpoint | Description |
 |--------|----------|-------------|

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -36,6 +36,14 @@ class TaskUpdate(BaseModel):
     priority: Optional[TaskPriority] = None
     tags: Optional[List[str]] = None
     due_date: Optional[datetime] = None
+
+    @field_validator("title", "status", "priority", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        # Omitted fields keep their defaults; explicit null must not reach storage.
+        if value is None:
+            raise ValueError("Field must not be null")
+        return value
 
 
 class TaskResponse(BaseModel):

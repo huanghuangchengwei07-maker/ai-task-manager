@@ -28,8 +28,8 @@ class Task(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
-    status = Column(SQLEnum(TaskStatus), default=TaskStatus.PENDING)
-    priority = Column(SQLEnum(TaskPriority), default=TaskPriority.MEDIUM)
+    status = Column(SQLEnum(TaskStatus), default=TaskStatus.PENDING, nullable=False)
+    priority = Column(SQLEnum(TaskPriority), default=TaskPriority.MEDIUM, nullable=False)
     tags = Column(Text, nullable=True)  # JSON string: ["tag1", "tag2"]
     due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
